@@ -2,15 +2,16 @@ package com.leshchenko.youtubefeed.data.network.models
 
 import com.leshchenko.youtubefeed.data.local.models.PlayListItemLocalModel
 import com.leshchenko.youtubefeed.data.local.models.Playlist
+import com.leshchenko.youtubefeed.data.local.models.PlaylistLocalModel
 import java.util.*
 
 data class PlayListResponseModel(
-    val nextPageToken: String,
+    val nextPageToken: String?,
     val pageInfo: PageInfo,
     val items: List<PlayListItemModel>
 ) {
-    fun toLocal(type: Playlist): List<PlayListItemLocalModel> {
-        return items.map {
+    fun toLocal(type: Playlist): PlaylistLocalModel {
+        val localItems = items.map {
             PlayListItemLocalModel(
                 type.playlistId,
                 it.contentDetails.videoId,
@@ -20,6 +21,7 @@ data class PlayListResponseModel(
                 it.snippet.thumbnails?.default?.url
             )
         }
+        return PlaylistLocalModel(nextPageToken, localItems)
     }
 }
 

@@ -33,10 +33,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        viewModel.moreItemsLiveData.observe(this, Observer {
+            it.withResult(success = {
+                Log.d("zlo", "more success ${it.size}")
+            },
+                error = {
+                    Log.d("zlo", "more error")
+                })
+        })
+
         viewModel.loadPlaylist(Playlist.FIRST).observe(this, Observer {
             it.withResult(
                 success = {
                     Log.d("zlo", "success")
+                    viewModel.loadMoreItems()
                 },
                 error = {
                     Log.d("zlo", "failure")
