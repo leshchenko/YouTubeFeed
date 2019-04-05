@@ -19,7 +19,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val playlistItems: MutableLiveData<List<PlayListItemLocalModel>> = MutableLiveData()
     val displayError = MutableLiveData<Boolean>()
-    val internetConnection = MutableLiveData<Boolean>()
 
     private var currentPlaylist: Playlist? = null
     private var nextPageToken: String? = null
@@ -39,20 +38,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         loadedItems.clear()
         currentPlaylist = playlist ?: Playlist.FIRST
-        if (isOnline(getApplication())) {
-            isLoading = true
-            internetConnection.value = false
-            CoroutineScope(Dispatchers.IO).launch {
-                val result = repository.loadItems(playlist ?: currentPlaylist ?: Playlist.FIRST)
-                handleResult(result)
-            }
-        } else {
-            internetConnection.value = true
+        isLoading = true
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = repository.loadItems(playlist ?: currentPlaylist ?: Playlist.FIRST)
+            handleResult(result)
         }
     }
 
     fun loadMoreItems() {
-        if (isLoading) { return }
+        if (isLoading) {
+            return
+        }
         val playlist = currentPlaylist
         val token = nextPageToken
         if (playlist != null && token != null) {

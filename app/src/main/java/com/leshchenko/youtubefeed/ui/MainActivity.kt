@@ -58,12 +58,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun defineObservers() {
-        viewModel.internetConnection.observe(this, Observer {
-            progressBar.visibility = if (it) GONE else VISIBLE
-            errorGroup.visibility = if (it) VISIBLE else GONE
-            errorTextView.text = getString(R.string.check_internet_connection)
-        })
-
         viewModel.displayError.observe(this, Observer {
             progressBar.visibility = GONE
             errorGroup.visibility = if (it) VISIBLE else GONE
