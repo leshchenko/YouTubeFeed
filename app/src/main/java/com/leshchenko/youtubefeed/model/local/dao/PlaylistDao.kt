@@ -1,10 +1,10 @@
-package com.leshchenko.youtubefeed.data.local.dao
+package com.leshchenko.youtubefeed.model.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.leshchenko.youtubefeed.data.local.models.PlayListItemLocalModel
+import com.leshchenko.youtubefeed.model.local.models.PlayListItemLocalModel
 
 @Dao
 interface PlaylistDao {

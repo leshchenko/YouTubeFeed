@@ -1,4 +1,4 @@
-package com.leshchenko.youtubefeed.data.local
+package com.leshchenko.youtubefeed.model.local
 
 import androidx.room.TypeConverter
 import java.text.SimpleDateFormat

@@ -1,6 +1,6 @@
-package com.leshchenko.youtubefeed.data.network
+package com.leshchenko.youtubefeed.model.network
 
-import com.leshchenko.youtubefeed.data.network.models.PlayListResponseModel
+import com.leshchenko.youtubefeed.model.network.models.PlayListResponseModel
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query

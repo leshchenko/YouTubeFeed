@@ -1,12 +1,12 @@
-package com.leshchenko.youtubefeed.data.local
+package com.leshchenko.youtubefeed.model.local
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.leshchenko.youtubefeed.data.local.dao.PlaylistDao
-import com.leshchenko.youtubefeed.data.local.models.PlayListItemLocalModel
+import com.leshchenko.youtubefeed.model.local.dao.PlaylistDao
+import com.leshchenko.youtubefeed.model.local.models.PlayListItemLocalModel
 
 @Database(entities = [PlayListItemLocalModel::class], version = 1, exportSchema = false)
 @TypeConverters(DateConverter::class)

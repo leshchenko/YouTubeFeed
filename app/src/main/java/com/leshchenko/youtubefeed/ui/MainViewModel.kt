@@ -1,28 +1,81 @@
 package com.leshchenko.youtubefeed.ui
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.leshchenko.youtubefeed.PlaylistRepositoryImplementation
-import com.leshchenko.youtubefeed.data.local.models.Playlist
-import com.leshchenko.youtubefeed.data.Result
-import com.leshchenko.youtubefeed.data.local.PlaylistDatabase
-import com.leshchenko.youtubefeed.data.local.models.PlayListItemLocalModel
+import com.leshchenko.youtubefeed.model.PlaylistRepositoryImplementation
+import com.leshchenko.youtubefeed.model.local.models.Playlist
+import com.leshchenko.youtubefeed.model.Result
+import com.leshchenko.youtubefeed.model.local.PlaylistDatabase
+import com.leshchenko.youtubefeed.model.local.models.PlayListItemLocalModel
+import com.leshchenko.youtubefeed.model.local.models.PlaylistLocalModel
+import com.leshchenko.youtubefeed.util.isOnline
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class MainViewModel(application: Application): AndroidViewModel(application) {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
 
-    val moreItemsLiveData: MutableLiveData<Result<List<PlayListItemLocalModel>>> = MutableLiveData()
+    val playlistItems: MutableLiveData<List<PlayListItemLocalModel>> = MutableLiveData()
+    val displayError = MutableLiveData<Boolean>()
+    val internetConnection = MutableLiveData<Boolean>()
+
+    private var currentPlaylist: Playlist? = null
+    private var nextPageToken: String? = null
+    private var loadedItems = mutableListOf<PlayListItemLocalModel>()
+    private var isLoading = false
 
     private val repository by lazy {
-        PlaylistRepositoryImplementation(PlaylistDatabase.getDatabase(application).playlistDao(), application)
+        PlaylistRepositoryImplementation(
+            PlaylistDatabase.getDatabase(application).playlistDao(),
+            application
+        )
     }
 
-    fun loadPlaylist(playlist: Playlist): LiveData<Result<List<PlayListItemLocalModel>>> {
-        return repository.loadItems(playlist)
+    fun loadPlaylist(playlist: Playlist?) {
+        if (isLoading) {
+            repository.cancelAllRequests()
+        }
+        loadedItems.clear()
+        currentPlaylist = playlist ?: Playlist.FIRST
+        if (isOnline(getApplication())) {
+            isLoading = true
+            internetConnection.value = false
+            CoroutineScope(Dispatchers.IO).launch {
+                val result = repository.loadItems(playlist ?: currentPlaylist ?: Playlist.FIRST)
+                handleResult(result)
+            }
+        } else {
+            internetConnection.value = true
+        }
     }
 
     fun loadMoreItems() {
-        repository.loadMore(moreItemsLiveData)
+        if (isLoading) { return }
+        val playlist = currentPlaylist
+        val token = nextPageToken
+        if (playlist != null && token != null) {
+            isLoading = true
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.loadMore(playlist, token)?.let { handleResult(it) }
+            }
+        }
+    }
+
+    private fun handleResult(result: Result<PlaylistLocalModel>) {
+        result.withResult(
+            success = {
+                displayError.postValue(false)
+                loadedItems.addAll(it.items)
+                nextPageToken = it.nextPageToken
+                playlistItems.postValue(loadedItems)
+                isLoading = false
+            },
+            error = {
+                Log.e(MainViewModel::class.java.simpleName, it.localizedMessage)
+                isLoading = false
+                displayError.postValue(true)
+            })
     }
 }

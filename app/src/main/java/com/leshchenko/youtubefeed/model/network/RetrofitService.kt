@@ -1,4 +1,4 @@
-package com.leshchenko.youtubefeed.data.network
+package com.leshchenko.youtubefeed.model.network
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

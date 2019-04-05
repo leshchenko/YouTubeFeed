@@ -1,10 +1,10 @@
-package com.leshchenko.youtubefeed.data.local.models
+package com.leshchenko.youtubefeed.model.local.models
 
 import androidx.room.*
 
 import java.util.*
 enum class Playlist(val playlistId: String) {
-    FIRST("PLBCF2DAC6FFB574DE"),
+    FIRST("RDMMTwsvnlZNuQw"),
     SECOND("PLBCF2DAC6FFB574DE"),
     THIRD("PLBCF2DAC6FFB574DE")
 }

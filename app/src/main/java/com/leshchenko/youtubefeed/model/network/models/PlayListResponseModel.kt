@@ -1,8 +1,8 @@
-package com.leshchenko.youtubefeed.data.network.models
+package com.leshchenko.youtubefeed.model.network.models
 
-import com.leshchenko.youtubefeed.data.local.models.PlayListItemLocalModel
-import com.leshchenko.youtubefeed.data.local.models.Playlist
-import com.leshchenko.youtubefeed.data.local.models.PlaylistLocalModel
+import com.leshchenko.youtubefeed.model.local.models.PlayListItemLocalModel
+import com.leshchenko.youtubefeed.model.local.models.Playlist
+import com.leshchenko.youtubefeed.model.local.models.PlaylistLocalModel
 import java.util.*
 
 data class PlayListResponseModel(
