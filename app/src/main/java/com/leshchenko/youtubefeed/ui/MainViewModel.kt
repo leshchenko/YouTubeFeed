@@ -10,7 +10,6 @@ import com.leshchenko.youtubefeed.model.Result
 import com.leshchenko.youtubefeed.model.local.PlaylistDatabase
 import com.leshchenko.youtubefeed.model.local.models.PlayListItemLocalModel
 import com.leshchenko.youtubefeed.model.local.models.PlaylistLocalModel
-import com.leshchenko.youtubefeed.util.isOnline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,7 +48,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 handleResult(result)
             }
         }
+    }
 
+    fun reloadCurrentPlaylist() {
+        loadedItems.clear()
+        isLoading = true
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = repository.loadItems(currentPlaylist ?: Playlist.FIRST)
+            handleResult(result)
+        }
     }
 
     fun loadMoreItems() {

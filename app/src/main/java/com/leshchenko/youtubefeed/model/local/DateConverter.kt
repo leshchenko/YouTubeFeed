@@ -8,7 +8,7 @@ class DateConverter {
 
     @TypeConverter
     fun dateFromString(date: String): Date {
-        return SimpleDateFormat("E MMM yy HH:mm:ss zzzz yyyy", Locale.getDefault()).parse(date)
+        return SimpleDateFormat("E MMM yy HH:mm:ss zzzz yyyy", Locale.US).parse(date)
     }
 
     @TypeConverter

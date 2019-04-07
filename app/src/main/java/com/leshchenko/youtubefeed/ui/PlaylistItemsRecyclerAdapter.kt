@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.leshchenko.youtubefeed.R
@@ -14,6 +15,7 @@ import java.util.*
 
 class PlaylistItemsRecyclerAdapter(private val items: MutableList<PlayListItemLocalModel>) :
     RecyclerView.Adapter<PlaylistItemViewHolder>() {
+    private var itemClickListener: (PlayListItemLocalModel) -> Unit = {}
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaylistItemViewHolder {
         val layout = LayoutInflater.from(parent.context).inflate(R.layout.playlist_item, parent, false)
         return PlaylistItemViewHolder(layout)
@@ -26,6 +28,7 @@ class PlaylistItemsRecyclerAdapter(private val items: MutableList<PlayListItemLo
     override fun onBindViewHolder(holder: PlaylistItemViewHolder, position: Int) {
         val item = items[position]
         with(holder) {
+            parentView.setOnClickListener { itemClickListener.invoke(item) }
             Glide.with(holder.thumbnailImageView).load(item.thumbnailUrl).into(holder.thumbnailImageView)
             titleTextView.text = item.title
             descriptionTextView.text = item.description
@@ -41,9 +44,14 @@ class PlaylistItemsRecyclerAdapter(private val items: MutableList<PlayListItemLo
         items.clear()
         items.addAll(data)
     }
+
+    fun setItemClickListener(listener: (PlayListItemLocalModel) -> Unit) {
+        itemClickListener = listener
+    }
 }
 
 class PlaylistItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    val parentView: ConstraintLayout = view.findViewById(R.id.playlistItemParentView)
     val thumbnailImageView: ImageView = view.findViewById(R.id.thumbnailImage)
     val titleTextView: TextView = view.findViewById(R.id.titleTextView)
     val descriptionTextView: TextView = view.findViewById(R.id.descriptionTextView)

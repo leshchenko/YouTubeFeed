@@ -16,31 +16,35 @@ import retrofit2.Response
 class PlaylistRepositoryImplementation(private val playlistDao: PlaylistDao, private val context: Context) :
     PlaylistRepository {
     companion object {
-         const val maxResults = 50
+        const val maxResults = 50
     }
 
     private var currentCall: Call<PlayListResponseModel>? = null
     override fun loadItems(playlist: Playlist): Result<PlaylistLocalModel> {
         var result = Result<PlaylistLocalModel>()
-         if (isOnline(context)) {
-            currentCall = RetrofitService.retrofit.create(YouTubeApiService::class.java)
-                .loadPlaylistItems(playlist.playlistId,
-                    maxResults
-                )
-            currentCall?.execute()?.let { result = handleResponse(it, playlist) }
-        } else {
-            val items = playlistDao.getPlaylistItems(playlist.playlistId)
-            result = Result(PlaylistLocalModel(items = items))
-        }
-
+        isOnline(context,
+            makeIsOnline = {
+                currentCall = RetrofitService.retrofit.create(YouTubeApiService::class.java)
+                    .loadPlaylistItems(
+                        playlist.playlistId,
+                        maxResults
+                    )
+                currentCall?.execute()?.let { result = handleResponse(it, playlist) }
+            },
+            makeIsOffline = {
+                val items = playlistDao.getPlaylistItems(playlist.playlistId)
+                result = Result(PlaylistLocalModel(items = items))
+            })
         return result
     }
 
     override fun loadMore(playlist: Playlist, nextPageToken: String): Result<PlaylistLocalModel>? {
         var result = Result<PlaylistLocalModel>()
         if (isOnline(context)) {
-            val response = loadItems(playlist,
-                maxResults, nextPageToken)
+            val response = loadItems(
+                playlist,
+                maxResults, nextPageToken
+            )
             response?.let {
                 result = handleResponse(it, playlist)
             }

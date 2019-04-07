@@ -11,4 +11,5 @@
     <string name="no_items">Looks like there are no items. You can try load it again.</string>
     <string name="error_happened">Ooops. Error happened. Please try to load videos again.</string>
     <string name="check_internet_connection">Please check you internet connection and try again.</string>
+    <string name="error_load_video">Error. Please try again later.</string>
 </resources>
