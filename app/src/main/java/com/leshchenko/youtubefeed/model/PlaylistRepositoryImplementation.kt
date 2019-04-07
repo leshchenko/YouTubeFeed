@@ -16,7 +16,7 @@ import retrofit2.Response
 class PlaylistRepositoryImplementation(private val playlistDao: PlaylistDao, private val context: Context) :
     PlaylistRepository {
     companion object {
-        private const val maxResults = 10
+         const val maxResults = 50
     }
 
     private var currentCall: Call<PlayListResponseModel>? = null
@@ -50,6 +50,7 @@ class PlaylistRepositoryImplementation(private val playlistDao: PlaylistDao, pri
 
     override fun cancelAllRequests() {
         currentCall?.cancel()
+        currentCall = null
     }
 
     private fun handleResponse(

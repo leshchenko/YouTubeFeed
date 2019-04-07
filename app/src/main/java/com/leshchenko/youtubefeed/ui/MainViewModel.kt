@@ -20,7 +20,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val playlistItems: MutableLiveData<List<PlayListItemLocalModel>> = MutableLiveData()
     val displayError = MutableLiveData<Boolean>()
 
-    private var currentPlaylist: Playlist? = null
+    var currentPlaylist: Playlist? = null
     private var nextPageToken: String? = null
     private var loadedItems = mutableListOf<PlayListItemLocalModel>()
     private var isLoading = false
@@ -36,13 +36,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (isLoading) {
             repository.cancelAllRequests()
         }
-        loadedItems.clear()
-        currentPlaylist = playlist ?: Playlist.FIRST
-        isLoading = true
-        CoroutineScope(Dispatchers.IO).launch {
-            val result = repository.loadItems(playlist ?: currentPlaylist ?: Playlist.FIRST)
-            handleResult(result)
+        if (playlist == null) {
+            currentPlaylist = Playlist.FIRST
         }
+
+        if (currentPlaylist?.playlistId != playlist?.playlistId) {
+            loadedItems.clear()
+            currentPlaylist = playlist ?: Playlist.FIRST
+            isLoading = true
+            CoroutineScope(Dispatchers.IO).launch {
+                val result = repository.loadItems(playlist ?: currentPlaylist ?: Playlist.FIRST)
+                handleResult(result)
+            }
+        }
+
     }
 
     fun loadMoreItems() {

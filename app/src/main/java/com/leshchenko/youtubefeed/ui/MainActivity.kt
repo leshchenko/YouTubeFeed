@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.leshchenko.youtubefeed.R
+import com.leshchenko.youtubefeed.model.PlaylistRepositoryImplementation
 import com.leshchenko.youtubefeed.model.local.models.PlayListItemLocalModel
 import com.leshchenko.youtubefeed.model.local.models.Playlist
 import com.leshchenko.youtubefeed.model.local.models.PlaylistLocalModel
@@ -44,17 +45,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val totalItemCount = recyclerView.layoutManager?.itemCount ?: 0
-                val firstVisibleItemPosition = (recyclerView.layoutManager as? LinearLayoutManager)?.findLastVisibleItemPosition() ?: 0
-                if(firstVisibleItemPosition >= totalItemCount - 15) {
+                val firstVisibleItemPosition =
+                    (recyclerView.layoutManager as? LinearLayoutManager)?.findLastVisibleItemPosition() ?: 0
+                if (firstVisibleItemPosition >= totalItemCount - PlaylistRepositoryImplementation.maxResults) {
                     viewModel.loadMoreItems()
                 }
             }
         })
         retryButton.setOnClickListener {
-            viewModel.loadPlaylist(null)
+            viewModel.loadPlaylist(viewModel.currentPlaylist)
         }
         defineObservers()
-        setupDrawer()
+        setupDrawer(savedInstanceState)
+        viewModel.loadPlaylist(viewModel.currentPlaylist)
     }
 
     private fun defineObservers() {
@@ -71,10 +74,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 displayItems(it)
             }
         })
-        viewModel.loadPlaylist(null)
     }
 
-    private fun setupDrawer() {
+    private fun setupDrawer(savedInstanceState: Bundle?) {
         val toggle = ActionBarDrawerToggle(
             this, drawer_layout, toolbar,
             R.string.navigation_drawer_open,
@@ -82,7 +84,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         )
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
-
+        savedInstanceState?:let { nav_view.setCheckedItem(R.id.first_playlist) }
         nav_view.setNavigationItemSelectedListener(this)
     }
 
@@ -121,23 +123,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_camera -> {
-            }
-            R.id.nav_gallery -> {
-
-            }
-            R.id.nav_slideshow -> {
-
-            }
-            R.id.nav_manage -> {
-
-            }
-            R.id.nav_share -> {
-
-            }
-            R.id.nav_send -> {
-
-            }
+            R.id.first_playlist -> viewModel.loadPlaylist(Playlist.FIRST)
+            R.id.second_playlist -> viewModel.loadPlaylist(Playlist.SECOND)
+            R.id.third_playlist -> viewModel.loadPlaylist(Playlist.THIRD)
         }
 
         drawer_layout.closeDrawer(GravityCompat.START)
