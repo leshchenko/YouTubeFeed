@@ -1,37 +1,34 @@
-package com.leshchenko.youtubefeed.ui
+package com.leshchenko.youtubefeed.ui.main
 
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
 import com.google.android.youtube.player.YouTubeStandalonePlayer
 import com.leshchenko.youtubefeed.R
-import com.leshchenko.youtubefeed.model.PlaylistRepositoryImplementation
 import com.leshchenko.youtubefeed.model.local.models.PlayListItemLocalModel
 import com.leshchenko.youtubefeed.model.local.models.Playlist
 import com.leshchenko.youtubefeed.model.network.RetrofitService
-import com.leshchenko.youtubefeed.util.PlaylistItemsDiffUtil
+import com.leshchenko.youtubefeed.ui.BaseActivity
+import com.leshchenko.youtubefeed.util.PaginationScrollListener
 import com.leshchenko.youtubefeed.util.isOnline
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private val viewModel by lazy {
         ViewModelProviders.of(this).get(MainViewModel::class.java)
     }
+
     private val adapter by lazy {
-        PlaylistItemsRecyclerAdapter(mutableListOf())
+        PlaylistItemsRecyclerAdapter()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +36,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         setupUI(savedInstanceState)
-        viewModel.loadPlaylist(viewModel.currentPlaylist)
+        viewModel.loadPlaylist(if (savedInstanceState == null) null else viewModel.currentPlaylist)
     }
 
     private fun setupUI(savedInstanceState: Bundle?) {
@@ -47,8 +44,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setupRecyclerView()
         retryButton.setOnClickListener {
             isOnline(this, makeIsOnline = {
-                errorGroup.visibility = GONE
-                progressBar.visibility = VISIBLE
+                displayLoading()
                 viewModel.reloadCurrentPlaylist()
             })
         }
@@ -59,36 +55,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun setupRecyclerView() {
         adapter.setItemClickListener { playVideo(it) }
         playlistItemsRecycleView.adapter = adapter
-
-        playlistItemsRecycleView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                val totalItemCount = recyclerView.layoutManager?.itemCount ?: 0
-                val firstVisibleItemPosition =
-                    (recyclerView.layoutManager as? LinearLayoutManager)?.findLastVisibleItemPosition() ?: 0
-                if (firstVisibleItemPosition >= totalItemCount - PlaylistRepositoryImplementation.maxResults) {
-                    isOnline(this@MainActivity, makeIsOnline = {
-                        viewModel.loadMoreItems()
-                    }, makeIsOffline = {})
-                }
-            }
+        playlistItemsRecycleView.addOnScrollListener(PaginationScrollListener {
+            isOnline(this@MainActivity, makeIsOnline = {
+                viewModel.loadMoreItems()
+            }, makeIsOffline = {})
         })
     }
 
     private fun defineObservers() {
         viewModel.displayError.observe(this, Observer {
-            progressBar.visibility = GONE
-            errorGroup.visibility = if (it) VISIBLE else GONE
-            playlistItemsRecycleView.visibility = if (it) GONE else VISIBLE
-            errorTextView.text = getString(R.string.error_happened)
-        })
-        viewModel.playlistItems.observe(this, Observer {
-            progressBar.visibility = GONE
-            if (it.isEmpty()) {
-                displayNoVideosError()
+            if (it.first) {
+                displayError(it.second)
             } else {
-                displayItems(it)
+                errorGroup.visibility = GONE
             }
+        })
+
+        viewModel.playlistItems.observe(this, Observer {
+            displayItems(it)
         })
     }
 
@@ -112,18 +96,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun displayItems(items: List<PlayListItemLocalModel>) {
+        progressBar.visibility = GONE
         errorGroup.visibility = GONE
         playlistItemsRecycleView.visibility = VISIBLE
-        val diffCallback = PlaylistItemsDiffUtil(adapter.getData(), items)
-        val diffResult = DiffUtil.calculateDiff(diffCallback, false)
-        adapter.setData(items)
-        diffResult.dispatchUpdatesTo(adapter)
+        adapter.submitList(items)
     }
 
-    private fun displayNoVideosError() {
+    private fun displayError(text: String) {
+        progressBar.visibility = GONE
         errorGroup.visibility = VISIBLE
         playlistItemsRecycleView.visibility = GONE
-        errorTextView.text = getString(R.string.no_items)
+        errorTextView.text = text
+    }
+
+    private fun displayLoading() {
+        playlistItemsRecycleView.visibility = GONE
+        progressBar.visibility = VISIBLE
+        errorGroup.visibility = GONE
     }
 
     override fun onBackPressed() {
@@ -135,15 +124,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        playlistItemsRecycleView.visibility = GONE
-        progressBar.visibility = VISIBLE
-        errorGroup.visibility = GONE
+        displayLoading()
         when (item.itemId) {
             R.id.first_playlist -> viewModel.loadPlaylist(Playlist.FIRST)
             R.id.second_playlist -> viewModel.loadPlaylist(Playlist.SECOND)
             R.id.third_playlist -> viewModel.loadPlaylist(Playlist.THIRD)
         }
-
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }

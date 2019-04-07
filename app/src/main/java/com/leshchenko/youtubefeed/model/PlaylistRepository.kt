@@ -1,6 +1,5 @@
 package com.leshchenko.youtubefeed.model
 
-import com.leshchenko.youtubefeed.model.Result
 import com.leshchenko.youtubefeed.model.local.models.Playlist
 import com.leshchenko.youtubefeed.model.local.models.PlaylistLocalModel
 

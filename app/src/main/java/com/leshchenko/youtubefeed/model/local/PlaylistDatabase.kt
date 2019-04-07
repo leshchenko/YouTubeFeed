@@ -10,7 +10,7 @@ import com.leshchenko.youtubefeed.model.local.models.PlayListItemLocalModel
 
 @Database(entities = [PlayListItemLocalModel::class], version = 1, exportSchema = false)
 @TypeConverters(DateConverter::class)
-public abstract class PlaylistDatabase : RoomDatabase() {
+abstract class PlaylistDatabase : RoomDatabase() {
 
     abstract fun playlistDao(): PlaylistDao
 
